@@ -12,6 +12,7 @@ import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions
+import io.reactivex.rxkotlin.subscribeBy
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -19,6 +20,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 // Analyser class to process frames and produce detections.
 class FaceDetect( context: Context , private var boundingBoxOverlay: BoundingBoxOverlay ) : ImageAnalysis.Analyzer {
+
+
+    private lateinit var genderClassifier: GenderClassifier
 
     data class Recognition(
         var id: String = "",
@@ -28,7 +32,6 @@ class FaceDetect( context: Context , private var boundingBoxOverlay: BoundingBox
         override fun toString(): String {
             return "Title = $title, Confidence = $confidence)"
         }
-
     }
 
     val realTimeOpts: FirebaseVisionFaceDetectorOptions = FirebaseVisionFaceDetectorOptions.Builder()
@@ -75,6 +78,15 @@ class FaceDetect( context: Context , private var boundingBoxOverlay: BoundingBox
                                 var FaceBB = face.boundingBox
                                 var faceBitmap = cropRectFromBitmap( bitmap , FaceBB , true )
 
+                                var res = "Unknown"
+
+//                                genderClassifier.recognizeImage(faceBitmap).subscribeBy(
+//                                    onSuccess = {
+//                                        Log.d("Predict",  "${it.toString()}")
+//                                        res = it.toString()
+//                                    }
+//                                )
+
                                 val filePath: String =
                                     Environment.getExternalStorageDirectory().absolutePath
                                         .toString() +
@@ -84,18 +96,6 @@ class FaceDetect( context: Context , private var boundingBoxOverlay: BoundingBox
                                 var filename = "faces$imgCount.png"
                                 File(filePath, filename).writeBitmap(faceBitmap, Bitmap.CompressFormat.PNG, 100)
                                 imgCount += 1
-
-//                                var ans = predictGender(faceBitmap)
-
-//                                Log.d("ModelAnswer", "Model answer $ans")
-//
-                                var res = "Unknown"
-//                                if(ans==0) {
-//                                    res = "Female"
-//                                }
-//                                else if (ans==1) {
-//                                    res = "Male"
-//                                }
 
                                 predictions.add(
                                     Prediction(
